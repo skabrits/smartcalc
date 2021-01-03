@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="example-pkg-seva-kabrits", # Replace with your own username
+    name="PMcalc",
     version="0.0.1",
     author="Vsevolod Kabrits",
     author_email="seva.kabrits@gmail.com",
