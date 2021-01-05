@@ -24,9 +24,15 @@ class UncertainNumber (object):
         return self._round(self.num, n)
 
     def _round(self, num, n=0):
+        if num == 0:
+            return 0
+
         return round(num, n - self.deg(num))
 
     def round_up(self, num, n=None, un=False):
+        if num == 0:
+            return 0
+
         dg = -self.deg(num)
         dg10 = 10 ** dg
         if un == True:
