@@ -16,7 +16,7 @@ class UncertainNumber (object):
                 raise TypeError("Not consistent types - tuple must contain 2 elements")
 
         self.deg_un = deg_unc
-        self.unc = self.round_up(abs(uncertainty), un=True) if uncertainty != 0 or not self.need_ch(uncertainty) else uncertainty
+        self.unc = self.round_up(abs(uncertainty), un=True) if uncertainty != 0 and self.need_ch(uncertainty) else uncertainty
         self.deg_un = self.deg_un if not self.deg_un is None else self.deg(self.unc)
         self.num = number if number == 0 or uncertainty == 0 else round(number, self.deg_un)
 
@@ -43,7 +43,7 @@ class UncertainNumber (object):
         return math.floor(math.log10(abs(num))) if num != 0 else -math.inf
 
     def need_ch(self, num):
-        return round(num, 1 - math.floor(math.log10(abs(num)))) == num
+        return round(num, 1 - math.floor(math.log10(abs(num)))) != num if num != 0 else False
 
     def fixit(self, other, op="this operation"):
         if isinstance(other, UncertainNumber):
