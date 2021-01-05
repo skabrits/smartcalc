@@ -40,10 +40,10 @@ class UncertainNumber (object):
         return num
 
     def deg(self, num):
-        return int(math.log10(abs(num))) if num != 0 else -math.inf
+        return math.floor(math.log10(abs(num))) if num != 0 else -math.inf
 
     def need_ch(self, num):
-        return round(num, 1 - int(math.log10(abs(num)))) == num
+        return round(num, 1 - math.floor(math.log10(abs(num)))) == num
 
     def fixit(self, other, op="this operation"):
         if isinstance(other, UncertainNumber):
