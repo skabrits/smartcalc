@@ -1,7 +1,9 @@
 import math
 
+# TODO deg transition to optimize time
 
-class uncertainNumber (object):
+
+class UncertainNumber (object):
 
     def __init__(self, number, uncertainty=0.0, deg_unc=None, *args, **kwargs):
         if isinstance(number, (tuple,list)):
@@ -44,20 +46,19 @@ class uncertainNumber (object):
         return round(num, 1 - int(math.log10(abs(num)))) == num
 
     def fixit(self, other, op="this operation"):
-        if isinstance(other, uncertainNumber):
+        if isinstance(other, UncertainNumber):
             return other
         if isinstance(other, (float, int)):
-            return uncertainNumber(other)
+            return UncertainNumber(other)
         elif isinstance(other, (tuple, list)):
-            return uncertainNumber(other[0], other[1])
+            return UncertainNumber(other[0], other[1])
         else:
             self._illegal(op)
             raise TypeError('other must be of type int, float, array or tuple')
 
     def __add__(self, other):
         other = self.fixit(other, "+")
-        return uncertainNumber(self.num + other.num,
-                       self.unc + other.unc)
+        return UncertainNumber(self.num + other.num, self.unc + other.unc)
 
     def __radd__(self, other):  # defines other + self
         other = self.fixit(other, "+")
@@ -70,16 +71,23 @@ class uncertainNumber (object):
         self.__init__(self.num, self.unc)
 
     def __sub__(self, other):
+        if other is self:
+            return UncertainNumber(0, 0.0)
+
         other = self.fixit(other, "-")
-        return uncertainNumber(self.num - other.num,
-                       self.unc + other.unc)
+        return UncertainNumber(self.num - other.num, self.unc + other.unc)
 
     def __rsub__(self, other):  # defines other + self
+        if other is self:
+            return UncertainNumber(0, 0.0)
+
         other = self.fixit(other, "-")
-        return uncertainNumber(other.num - self.num,
-                               self.unc + other.unc)
+        return UncertainNumber(other.num - self.num, self.unc + other.unc)
 
     def __isub__(self, other):
+        if other is self:
+            self.__init__(0, 0.0)
+
         other = self.fixit(other, "-")
         self.num -= other.num
         self.unc += other.unc
@@ -88,8 +96,7 @@ class uncertainNumber (object):
     def __mul__(self, other):
         other = self.fixit(other, "*")
         _product = self.num * other.num
-        return uncertainNumber(_product,
-                               _product * (self.unc / self.num + other.unc / other.num))
+        return UncertainNumber(_product, _product * (self.unc / self.num + other.unc / other.num))
 
     def __rmul__(self, other):  # defines other + self
         other = self.fixit(other, "*")
@@ -102,19 +109,26 @@ class uncertainNumber (object):
         self.unc = self.num * (self.unc / sn + other.unc / other.num)
         self.__init__(self.num, self.unc)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
+        if other is self:
+            return UncertainNumber(1, 0.0)
+
         other = self.fixit(other, "/")
         _div = self.num / other.num
-        return uncertainNumber(_div,
-                               _div * (self.unc / self.num + other.unc / other.num))
+        return UncertainNumber(_div, _div * (self.unc / self.num + other.unc / other.num))
 
     def __rdiv__(self, other):  # defines other + self
+        if other is self:
+            return UncertainNumber(1, 0.0)
+
         other = self.fixit(other, "/")
         _div = other.num / self.num
-        return uncertainNumber(_div,
-                               _div * (self.unc / self.num + other.unc / other.num))
+        return UncertainNumber(_div, _div * (self.unc / self.num + other.unc / other.num))
 
     def __idiv__(self, other):
+        if other is self:
+            self.__init__(1, 0.0)
+
         other = self.fixit(other, "+")
         sn = self.num
         self.num /= other.num
@@ -124,8 +138,8 @@ class uncertainNumber (object):
     def __abs__(self):
         return abs(self.num)
 
-    def __neg__(self):  # defines -c (c is uncertainNumber)
-        return uncertainNumber(-self.num, self.unc)
+    def __neg__(self):  # defines -c (c is UncertainNumber)
+        return UncertainNumber(-self.num, self.unc)
 
     def __eq__(self, other):
         return self.num == other.num and self.unc == other.unc
@@ -140,19 +154,25 @@ class uncertainNumber (object):
         return "%g \u00b1 %g" % (self.num, self.unc)
 
     def __repr__(self):
-        return 'uncertainNumber ' + str(self)
+        return 'UncertainNumber ' + str(self)
 
     def __pow__(self, power):
         power = self.fixit(power, "**")
-        return uncertainNumber(self,)
+        pwr = self.num ** power.num
+        return UncertainNumber(pwr, pwr / self.num * self.unc * power.num + math.log(self.num) * power.unc * pwr)
 
     def __rpow__(self, base):
         base = self.fixit(base, "**")
-        return
+        pwr = base.num ** self.num
+        return UncertainNumber(pwr, pwr / base.num * base.unc * self.num + math.log(base.num) * self.unc * pwr)
 
     def __ipow__(self, power):
         power = self.fixit(power, "**")
-        return self.__pow__(power)
+        pwr = self.num ** power.num
+        sn = self.num
+        self.num = pwr
+        self.unc = pwr / sn * self.unc * power.num + math.log(sn) * power.unc * pwr
+        self.__init__(self.num, self.unc)
 
     def __gt__(self, other):
         other = self.fixit(other, ">")
@@ -174,7 +194,10 @@ class uncertainNumber (object):
         print('illegal operation "%s" for uncertain number' % op)
 
 
-un = uncertainNumber
+un = UncertainNumber
 
 if __name__ == "__main__":
-    o = un
+    o = un(1, 0.05)
+    oh = un(6, 0.4)
+    oo = o ** oh + o * oh - oh / o
+    print(oo)
