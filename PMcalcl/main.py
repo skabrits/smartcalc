@@ -19,7 +19,7 @@ class UncertainNumber (object):
         self.add_signs = add_signs
         self.deg_un = deg_unc
         self.unc = self.round_up(abs(uncertainty), un=True, preprocessing=preprocessing) if uncertainty != 0 and self.need_ch(uncertainty) else uncertainty
-        self.deg_un = self.deg_un if not self.deg_un is None else -self.deg(self.unc)
+        self.deg_un = self.deg_un if not self.deg_un is None or self.unc == 0 else -self.deg(self.unc)
         self.num = number if number == 0 or uncertainty == 0 else round(number, self.deg_un + self.add_signs)
 
     def __round__(self, n=None):
@@ -165,7 +165,7 @@ class UncertainNumber (object):
         return not self.__eq__(other)
 
     def __str__(self):
-        return "%g \u00b1 %g" % (self.num if self.add_signs == 0 else round(self.num, self.deg_un), self.unc)
+        return "%g \u00b1 %g" % (self.num if self.add_signs == 0 or self.deg_un is None else round(self.num, self.deg_un), self.unc)
 
     def __repr__(self):
         return 'UncertainNumber ' + str(self)
@@ -226,7 +226,9 @@ un = UncertainNumber
 if __name__ == "__main__":
     o = un(1, 0.05)
     oh = un(6, 0.4)
+    g = un(3,0)
     oo = o ** oh + o * oh - oh / o
     ooo = mean_un([un(1, 0.05),un(1.1, 0.05),un(0.9, 0.05),un(0.7, 0.05),un(1.3, 0.05)])
     print(oo)
     print(ooo)
+    print(un(1,0)*g)
