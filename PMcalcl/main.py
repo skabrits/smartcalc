@@ -207,6 +207,19 @@ class UncertainNumber (object):
     def _illegal(self, op):
         print('illegal operation "%s" for uncertain number' % op)
 
+def mean_un(arr):
+    for i in range(len(arr)):
+        if not isinstance(arr[i], UncertainNumber):
+            arr[i] = UncertainNumber.fixit(arr[i],"convert")
+    arr_num = [i.num for i in arr]
+    arr_unc = [i.unc for i in arr]
+    x = sum(arr_num)/len(arr_num)
+    std = sum([(x-i)**2 for i in arr_num])/(len(arr_num)-1)
+    delta = (sum(arr_unc)/len(arr_unc))**2
+    print(delta)
+    print(std)
+
+    return UncertainNumber(x, ((delta if delta > (1/10)*std else 0) + (std if std > (1/10)*delta else 0))**(1/2), add_signs=arr[0].add_signs, preprocessing=arr[0].preproc)
 
 un = UncertainNumber
 
@@ -214,4 +227,6 @@ if __name__ == "__main__":
     o = un(1, 0.05)
     oh = un(6, 0.4)
     oo = o ** oh + o * oh - oh / o
+    ooo = mean_un([un(1, 0.05),un(1.1, 0.05),un(0.9, 0.05),un(0.7, 0.05),un(1.3, 0.05)])
     print(oo)
+    print(ooo)
