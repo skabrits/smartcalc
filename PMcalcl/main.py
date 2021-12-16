@@ -57,7 +57,7 @@ class UncertainNumber (object):
         return math.floor(math.log10(abs(num))) if num != 0 else -math.inf
 
     def need_ch(self, num):
-        return round(num, 1 - math.floor(math.log10(abs(num)))) != num if num != 0 else False
+        return round(num, -math.floor(math.log10(abs(num)))) != num if num != 0 else False
 
     def fixit(self, other, op="this operation"):
         if isinstance(other, UncertainNumber):

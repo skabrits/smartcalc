@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="PMcalc",
-    version="0.0.9",
+    version="0.1.1",
     author="Vsevolod Kabrits",
     author_email="seva.kabrits@gmail.com",
     description="Package for performing calculations with uncertainties",
