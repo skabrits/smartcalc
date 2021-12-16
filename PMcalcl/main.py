@@ -216,8 +216,6 @@ def mean_un(arr):
     x = sum(arr_num)/len(arr_num)
     std = sum([(x-i)**2 for i in arr_num])/(len(arr_num)-1)
     delta = (sum(arr_unc)/len(arr_unc))**2
-    print(delta)
-    print(std)
 
     return UncertainNumber(x, ((delta if delta > (1/10)*std else 0) + (std if std > (1/10)*delta else 0))**(1/2), add_signs=arr[0].add_signs, preprocessing=arr[0].preproc)
 
