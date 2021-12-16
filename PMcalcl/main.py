@@ -110,7 +110,7 @@ class UncertainNumber (object):
     def __mul__(self, other, ir=False):
         other = self.fixit(other, "*")
         _product = self.num * other.num
-        return UncertainNumber(_product, _product * (self.unc / self.num + other.unc / other.num), add_signs=self.add_signs if not ir else other.add_signs, preprocessing=self.preproc if not ir else other.preproc)
+        return UncertainNumber(_product, (_product * (self.unc / self.num + other.unc / other.num) if _product != 0 else (self.unc * other.num if self.num == 0 else other.unc * self.num)), add_signs=self.add_signs if not ir else other.add_signs, preprocessing=self.preproc if not ir else other.preproc)
 
     def __rmul__(self, other):  # defines other + self
         other = self.fixit(other, "*")
@@ -120,7 +120,7 @@ class UncertainNumber (object):
         other = self.fixit(other, "*")
         sn = self.num
         self.num *= other.num
-        self.unc = self.num * (self.unc / sn + other.unc / other.num)
+        self.unc = (self.num * (self.unc / sn + other.unc / other.num) if self.num != 0 else (self.unc * other.num if sn == 0 else other.unc * sn))
         self.__init__(self.num, self.unc, add_signs=self.add_signs, preprocessing=self.preproc)
 
     def __truediv__(self, other):
@@ -129,7 +129,7 @@ class UncertainNumber (object):
 
         other = self.fixit(other, "/")
         _div = self.num / other.num
-        return UncertainNumber(_div, _div * (self.unc / self.num + other.unc / other.num), add_signs=self.add_signs, preprocessing=self.preproc)
+        return UncertainNumber(_div, (_div * (self.unc / self.num + other.unc / other.num) if self.num != 0 else self.unc/other.num), add_signs=self.add_signs, preprocessing=self.preproc)
 
     def __rdiv__(self, other):  # defines other + self
         if other is self:
@@ -137,7 +137,7 @@ class UncertainNumber (object):
 
         other = self.fixit(other, "/")
         _div = other.num / self.num
-        return UncertainNumber(_div, _div * (self.unc / self.num + other.unc / other.num), add_signs=other.add_signs, preprocessing=other.preproc)
+        return UncertainNumber(_div, (_div * (self.unc / self.num + other.unc / other.num) if other.num != 0 else other.unc/self.num), add_signs=other.add_signs, preprocessing=other.preproc)
 
     def __idiv__(self, other):
         if other is self:
@@ -146,7 +146,7 @@ class UncertainNumber (object):
         other = self.fixit(other, "+")
         sn = self.num
         self.num /= other.num
-        self.unc = self.num * (self.unc / sn + other.unc / other.num)
+        self.unc = (self.num * (self.unc / sn + other.unc / other.num) if sn != 0 else self.unc/other.num)
         self.__init__(self.num, self.unc, add_signs=self.add_signs, preprocessing=self.preproc)
 
     def __abs__(self):
@@ -165,7 +165,7 @@ class UncertainNumber (object):
         return not self.__eq__(other)
 
     def __str__(self):
-        return "%g \u00b1 %g" % (self.num if self.add_signs == 0 or self.deg_un is None else round(self.num, self.deg_un), self.unc)
+        return "%g \u00b1 %g" % (self.num if self.add_signs == 0 or self.deg_un is None or abs(self.deg_un) == math.inf else round(self.num, self.deg_un), self.unc)
 
     def __repr__(self):
         return 'UncertainNumber ' + str(self)
@@ -173,19 +173,19 @@ class UncertainNumber (object):
     def __pow__(self, power):
         power = self.fixit(power, "**")
         pwr = self.num ** power.num
-        return UncertainNumber(pwr, pwr / self.num * self.unc * power.num + math.log(self.num) * power.unc * pwr, add_signs=self.add_signs, preprocessing=self.preproc)
+        return UncertainNumber(pwr, (pwr / self.num if self.num != 0 else pwr) * self.unc * power.num + (math.log(self.num) * power.unc * pwr if self.num != 0 else power.unc), add_signs=self.add_signs, preprocessing=self.preproc)
 
     def __rpow__(self, base):
         base = self.fixit(base, "**")
         pwr = base.num ** self.num
-        return UncertainNumber(pwr, pwr / base.num * base.unc * self.num + math.log(base.num) * self.unc * pwr, add_signs=base.add_signs, preprocessing=base.preproc)
+        return UncertainNumber(pwr, (pwr / base.num if base.num != 0 else pwr) * base.unc * self.num + (math.log(base.num) * self.unc * pwr if base.num != 0 else self.unc), add_signs=base.add_signs, preprocessing=base.preproc)
 
     def __ipow__(self, power):
         power = self.fixit(power, "**")
         pwr = self.num ** power.num
         sn = self.num
         self.num = pwr
-        self.unc = pwr / sn * self.unc * power.num + math.log(sn) * power.unc * pwr
+        self.unc = (pwr / sn if self.num != 0 else pwr) * self.unc * power.num + (math.log(sn) * power.unc * pwr if sn != 0 else power.unc)
         self.__init__(self.num, self.unc, add_signs=self.add_signs, preprocessing=self.preproc)
 
     def __gt__(self, other):
